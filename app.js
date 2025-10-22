@@ -10,4 +10,10 @@ app.use(cors())
 
 app.use(router)
 
+// Middleware de tratamento de erro global
+app.use((error, req, res, next) => {
+  console.error('Erro na aplicação:', error);
+  res.status(500).json({ message: 'Erro interno do servidor' });
+});
+
 export default app

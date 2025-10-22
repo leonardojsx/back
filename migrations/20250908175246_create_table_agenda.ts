@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('idUsuario').references('id').inTable('usuarios')
     table.boolean('temTaxa').notNullable()
     table.decimal('valor', 10, 2)
-    table.decimal('porcentegem', 4, 2)
+    table.decimal('porcentagem', 4, 2)
     table.decimal('valorPorcentagem', 10, 2)
   })
 }
