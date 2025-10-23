@@ -8,7 +8,7 @@ class UsersRepo {
     try {
       await knex.insert(users).into('usuarios')
     } catch (error) {
-      console.log(error)
+      throw error;
     }
   }
 
@@ -16,7 +16,6 @@ class UsersRepo {
     try {
       return await knex('usuarios').where('id', id).update(userData);
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -25,7 +24,6 @@ class UsersRepo {
     try {
       return await knex.select().table('usuarios').where('id', '=', id).first();
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -42,7 +40,6 @@ class UsersRepo {
     try {
       return await knex('usuarios').where('id', id).del();
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

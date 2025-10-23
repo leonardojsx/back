@@ -18,7 +18,6 @@ class TrainingRepo {
       await knex('treinamentos').insert(toInsert);
       return trainingEntity.id;
     } catch (error) {
-      console.log("TrainingRepo.save error:", error);
       throw error;
     }
   }
@@ -28,7 +27,6 @@ class TrainingRepo {
       const row = await knex('usuarios').where({ id: userId }).first();
       return !!row;
     } catch (error) {
-      console.log("TrainingRepo.userExists error:", error);
       throw error;
     }
   }
@@ -38,7 +36,6 @@ class TrainingRepo {
       const row = await knex('agenda').where({ cnpj: cnpj }).first();
       return !!row;
     } catch (error) {
-      console.log("TrainingRepo.cnpjHasCommissions error:", error);
       throw error;
     }
   }
@@ -66,7 +63,6 @@ class TrainingRepo {
       const rows = await query;
       return rows;
     } catch (error) {
-      console.log("TrainingRepo.findAll error:", error);
       throw error;
     }
   }
@@ -80,7 +76,6 @@ class TrainingRepo {
         .first();
       return row;
     } catch (error) {
-      console.log("TrainingRepo.findById error:", error);
       throw error;
     }
   }
@@ -90,7 +85,6 @@ class TrainingRepo {
       await knex('treinamentos').where({ id }).update(training);
       return true;
     } catch (error) {
-      console.log("TrainingRepo.update error:", error);
       throw error;
     }
   }
@@ -100,7 +94,6 @@ class TrainingRepo {
       await knex('treinamentos').where({ id }).delete();
       return true;
     } catch (error) {
-      console.log("TrainingRepo.delete error:", error);
       throw error;
     }
   }

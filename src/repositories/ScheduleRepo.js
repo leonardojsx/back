@@ -20,7 +20,6 @@ class ScheduleRepo {
       await knex('agenda').insert(toInsert);
       return scheduleEntity.id;
     } catch (error) {
-      console.log("ScheduleRepo.save error:", error);
       throw error;
     }
   }
@@ -30,7 +29,6 @@ class ScheduleRepo {
       const row = await knex('usuarios').where({ id: idUsuario }).first();
       return !!row;
     } catch (error) {
-      console.log("ScheduleRepo.userExists error:", error);
       throw error;
     }
   }
@@ -67,7 +65,6 @@ class ScheduleRepo {
       const rows = await query;
       return rows;
     } catch (error) {
-      console.log("ScheduleRepo.findAll error:", error);
       throw error;
     }
   }
@@ -81,7 +78,6 @@ class ScheduleRepo {
         .first();
       return row;
     } catch (error) {
-      console.log("ScheduleRepo.findById error:", error);
       throw error;
     }
   }
@@ -91,7 +87,6 @@ class ScheduleRepo {
       await knex('agenda').where({ id }).update(schedule);
       return true;
     } catch (error) {
-      console.log("ScheduleRepo.update error:", error);
       throw error;
     }
   }
@@ -101,7 +96,6 @@ class ScheduleRepo {
       await knex('agenda').where({ id }).delete();
       return true;
     } catch (error) {
-      console.log("ScheduleRepo.delete error:", error);
       throw error;
     }
   }
