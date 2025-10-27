@@ -17,9 +17,23 @@ class ScheduleRepo {
         valorPorcentagem: scheduleEntity.valorPorcentagem,
         titulo: scheduleEntity.titulo ?? null
       };
+      
+      // Validar se a data está no formato correto para MySQL
+      if (toInsert.data && typeof toInsert.data === 'string' && toInsert.data.includes('T')) {
+        const error = new Error('Formato de data inválido. Use o formato YYYY-MM-DD HH:MM:SS')
+        error.status = 400
+        throw error
+      }
+      
       await knex('agenda').insert(toInsert);
       return scheduleEntity.id;
     } catch (error) {
+      // Se for erro de formato de data do MySQL, dar uma mensagem mais clara
+      if (error.message && error.message.includes('Incorrect datetime value')) {
+        const formatError = new Error('Formato de data inválido. A data deve estar no formato correto para o banco de dados.')
+        formatError.status = 400
+        throw formatError
+      }
       throw error;
     }
   }

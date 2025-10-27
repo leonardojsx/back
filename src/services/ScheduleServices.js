@@ -13,6 +13,14 @@ class ScheduleServices {
     schedule.valorPorcentagem = valorPorcentagem
     schedule.valor = valor
     schedule.titulo = schedule.titulo ?? null
+    
+    // Validar se a data foi fornecida
+    if (!schedule.data) {
+      const err = new Error('Data é obrigatória')
+      err.status = 400
+      throw err
+    }
+    
     const exists = await this.scheduleRepo.userExists(schedule.idUsuario)
     if (!exists) {
       const err = new Error('Usuário não encontrado')
@@ -76,6 +84,12 @@ class ScheduleServices {
   }
 
   async update(schedule, id) {
+    // Se a data estiver sendo atualizada, formatar corretamente
+    if (schedule.data) {
+      const scheduleEntity = new ScheduleEntity(schedule)
+      schedule.data = scheduleEntity.data
+    }
+    
     await this.scheduleRepo.update(schedule, id)
     return true
   }
