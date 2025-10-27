@@ -14,6 +14,7 @@ class UsersController {
       return res.status(200).json(result);
 
     } catch (error) {
+      console.log(error)
       // 3. ✅ Captura os erros do serviço e retorna uma resposta apropriada.
       return res.status(error.status || 401).json({ message: error.message || 'Falha na autenticação' });
     }

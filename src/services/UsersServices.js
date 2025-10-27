@@ -23,6 +23,8 @@ class UsersServices {
       throw err;
     }
 
+    console.log('hgjfhgjf')
+
     const tokenPayload = {
       id: existUser.id,
       role: existUser.role
