@@ -23,7 +23,7 @@ class UsersServices {
       throw err;
     }
 
-    console.log('hgjfhgjf')
+
 
     const tokenPayload = {
       id: existUser.id,
@@ -35,7 +35,8 @@ class UsersServices {
       id: existUser.id,
       nome: existUser.nome,
       email: existUser.email,
-      role: existUser.role
+      role: existUser.role,
+      salarioBruto: existUser.salarioBruto ? Number(existUser.salarioBruto) : 0
     };
 
     return { token, user: userResponse };
@@ -58,11 +59,21 @@ class UsersServices {
   }
 
   async update(userData, id) {
-    const userEntity = new UsersEntity(userData);
-    if (userEntity.senha) {
-      userEntity.senha = this.generatePasswordHash(userEntity.senha);
+    // Criar objeto apenas com os campos que podem ser atualizados
+    const updateData = {};
+    
+    // Mapear apenas os campos permitidos para atualização
+    if (userData.nome !== undefined) updateData.nome = userData.nome;
+    if (userData.email !== undefined) updateData.email = userData.email;
+    if (userData.role !== undefined) updateData.role = userData.role;
+    if (userData.salarioBruto !== undefined) updateData.salarioBruto = Number(userData.salarioBruto);
+    
+    // Se senha foi fornecida, criptografar
+    if (userData.senha) {
+      updateData.senha = this.generatePasswordHash(userData.senha);
     }
-    return await this.usersRepo.update(userEntity, id);
+    
+    return await this.usersRepo.update(updateData, id);
   }
 
   async findById(id) {
@@ -74,7 +85,8 @@ class UsersServices {
       id: user.id,
       nome: user.nome,
       email: user.email,
-      role: user.role
+      role: user.role,
+      salarioBruto: user.salarioBruto ? Number(user.salarioBruto) : 0
     };
   }
 
@@ -85,7 +97,8 @@ class UsersServices {
       id: user.id,
       nome: user.nome,
       email: user.email,
-      role: user.role
+      role: user.role,
+      salarioBruto: user.salarioBruto ? Number(user.salarioBruto) : 0
     }));
   }
   

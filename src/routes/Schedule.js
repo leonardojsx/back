@@ -10,6 +10,10 @@ router.post('/', authMiddleware, (req, res) => {
   return scheduleControllers.save(req, res);
 });
 
+router.get('/users-summary', authMiddleware, (req, res) => {
+  return scheduleControllers.getAllUsersSummary(req, res);
+});
+
 router.get('/:id', authMiddleware, (req, res) => {
   return scheduleControllers.findById(req, res);
 });

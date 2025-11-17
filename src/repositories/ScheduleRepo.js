@@ -47,6 +47,14 @@ class ScheduleRepo {
     }
   }
 
+  async getUserSalario(userId) {
+    try {
+      return await knex.select('salarioBruto').from('usuarios').where('id', userId).first()
+    } catch (error) {
+      throw error
+    }
+  }
+
   async findAll(options = {}) {
     const { ano, mes, view, idUsuario } = options;
     try {
@@ -111,6 +119,66 @@ class ScheduleRepo {
       return true;
     } catch (error) {
       throw error;
+    }
+  }
+
+  // Método para buscar todos os usuários com seus dados básicos
+  async getAllUsers() {
+    try {
+      const users = await knex('usuarios')
+        .select('id', 'nome', 'email', 'role', 'salarioBruto')
+      
+      return users
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // Método otimizado para buscar resumo dos usuários com comissões em uma única query
+  async getAllUsersSummaryOptimized() {
+    try {
+      const hoje = new Date()
+      const ano = hoje.getFullYear()
+      const mes = hoje.getMonth() + 1
+      
+      // Query otimizada que junta usuários com suas comissões do mês atual
+      const result = await knex('usuarios')
+        .select(
+          'usuarios.id',
+          'usuarios.nome',
+          'usuarios.email', 
+          'usuarios.role',
+          'usuarios.salarioBruto',
+          knex.raw('COALESCE(SUM(agenda.valorPorcentagem), 0) as totalComissoes')
+        )
+        .leftJoin('agenda', function() {
+          this.on('usuarios.id', '=', 'agenda.idUsuario')
+            .andOn(knex.raw('YEAR(agenda.data) = ?', [ano]))
+            .andOn(knex.raw('MONTH(agenda.data) = ?', [mes]))
+        })
+        .groupBy('usuarios.id', 'usuarios.nome', 'usuarios.email', 'usuarios.role', 'usuarios.salarioBruto')
+        .orderBy('usuarios.nome')
+
+      // Processar os resultados
+      const summaryData = result.map(row => {
+        const salarioBruto = Number(row.salarioBruto || 0)
+        const totalComissoes = Number(row.totalComissoes || 0)
+        const totalFinal = Number((salarioBruto + totalComissoes).toFixed(2))
+        
+        return {
+          id: row.id,
+          nome: row.nome,
+          email: row.email,
+          role: row.role,
+          salarioBruto,
+          totalComissoes: Number(totalComissoes.toFixed(2)),
+          totalFinal
+        }
+      })
+
+      return summaryData
+    } catch (error) {
+      throw error
     }
   }
 }

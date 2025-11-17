@@ -67,6 +67,23 @@ class ScheduleControllers {
       return res.status(err.status || 500).json({ message: err.message || 'Erro interno' })
     }
   }
+
+  async getAllUsersSummary(req, res) {
+    try {
+      // Verificar se o usuário tem permissão (apenas admin)
+      const { user } = req;
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: 'Acesso negado. Apenas administradores podem acessar este recurso.' })
+      }
+
+      const summaryData = await this.scheduleServices.getAllUsersSummary()
+      
+      return res.status(200).json(summaryData)
+    } catch (err) {
+      return res.status(err.status || 500).json({ message: err.message || 'Erro interno' })
+    }
+  }
 }
 
 export { ScheduleControllers };

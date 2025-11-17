@@ -7,6 +7,7 @@ class UsersEntity {
     this.role = body.role
     this.email = body.email
     this.senha = body.senha
+    this.salarioBruto = body.salarioBruto ? Number(body.salarioBruto) : 0
   }
 }
 

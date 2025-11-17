@@ -58,9 +58,21 @@ class ScheduleServices {
     if (summary) {
       const totalComissoes = items.reduce((acc, row) => acc + (row.valorPorcentagem || 0), 0)
       const totalComissoesRounded = Number(totalComissoes.toFixed(2))
+      
+      // Se o usuário tem um ID específico, buscar seu salário bruto
+      let salarioBruto = 0
+      if (user && user.id) {
+        const userData = await this.scheduleRepo.getUserSalario(user.id)
+        salarioBruto = userData ? Number(userData.salarioBruto || 0) : 0
+      }
+      
+      const totalFinal = Number((salarioBruto + totalComissoesRounded).toFixed(2))
+      
       return {
         items,
-        totalComissoes: totalComissoesRounded
+        totalComissoes: totalComissoesRounded,
+        salarioBruto,
+        totalFinal
       }
     }
     return items
@@ -97,6 +109,57 @@ class ScheduleServices {
   async delete(id) {
     await this.scheduleRepo.delete(id)
     return true
+  }
+
+  // Método para buscar resumo de todos os usuários (admin only) - OTIMIZADO
+  async getAllUsersSummary() {
+    try {
+      // Buscar todos os usuários e suas comissões em uma única query otimizada
+      const summaryData = await this.scheduleRepo.getAllUsersSummaryOptimized()
+      
+      return summaryData
+    } catch (error) {
+      // Fallback para método anterior se a query otimizada falhar
+      
+      // Buscar todos os usuários
+      const users = await this.scheduleRepo.getAllUsers()
+      
+      // Para cada usuário, calcular suas comissões
+      const summaryData = []
+      
+      for (const user of users) {
+        // Buscar comissões do usuário no mês atual
+        const hoje = new Date()
+        const ano = hoje.getFullYear()
+        const mes = hoje.getMonth() + 1
+        
+        const comissoes = await this.scheduleRepo.findAll({ 
+          idUsuario: user.id,
+          ano,
+          mes 
+        })
+        
+        const totalComissoes = comissoes.reduce((acc, row) => {
+          return acc + (row.valorPorcentagem ? Number(row.valorPorcentagem) : 0)
+        }, 0)
+        
+        const totalComissoesRounded = Number(totalComissoes.toFixed(2))
+        const salarioBruto = Number(user.salarioBruto || 0)
+        const totalFinal = Number((salarioBruto + totalComissoesRounded).toFixed(2))
+        
+        summaryData.push({
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          role: user.role,
+          salarioBruto,
+          totalComissoes: totalComissoesRounded,
+          totalFinal
+        })
+      }
+      
+      return summaryData
+    }
   }
 }
 
