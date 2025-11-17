@@ -11,8 +11,8 @@ class TrainingRepo {
         titulo: trainingEntity.titulo,
         usuario_id: trainingEntity.usuario_id,
         cnpj: trainingEntity.cnpj,
-        data_inicio: trainingEntity.data_inicio,
-        data_fim: trainingEntity.data_fim,
+        data_inicio: new Date(trainingEntity.data_inicio),
+        data_fim: new Date(trainingEntity.data_fim),
         status: trainingEntity.status
       };
       await knex('treinamentos').insert(toInsert);
@@ -82,7 +82,16 @@ class TrainingRepo {
 
   async update(training, id) {
     try {
-      await knex('treinamentos').where({ id }).update(training);
+      // Converter datas para objetos Date se fornecidas
+      const updateData = { ...training };
+      if (updateData.data_inicio) {
+        updateData.data_inicio = new Date(updateData.data_inicio);
+      }
+      if (updateData.data_fim) {
+        updateData.data_fim = new Date(updateData.data_fim);
+      }
+      
+      await knex('treinamentos').where({ id }).update(updateData);
       return true;
     } catch (error) {
       throw error;
