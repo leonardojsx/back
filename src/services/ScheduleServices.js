@@ -59,19 +59,26 @@ class ScheduleServices {
       const totalComissoes = items.reduce((acc, row) => acc + (row.valorPorcentagem || 0), 0)
       const totalComissoesRounded = Number(totalComissoes.toFixed(2))
       
-      // Se o usuário tem um ID específico, buscar seu salário bruto
+      // Se o usuário tem um ID específico, buscar seu salário bruto e descontos
       let salarioBruto = 0
+      let totalDescontos = 0
       if (user && user.id) {
         const userData = await this.scheduleRepo.getUserSalario(user.id)
         salarioBruto = userData ? Number(userData.salarioBruto || 0) : 0
+        
+        // Buscar descontos do mês atual
+        const { DiscountRepo } = await import('../repositories/DiscountRepo.js')
+        const discountRepo = new DiscountRepo()
+        totalDescontos = await discountRepo.getTotalByUser(user.id, ano, mes)
       }
       
-      const totalFinal = Number((salarioBruto + totalComissoesRounded).toFixed(2))
+      const totalFinal = Number((salarioBruto + totalComissoesRounded - totalDescontos).toFixed(2))
       
       return {
         items,
         totalComissoes: totalComissoesRounded,
         salarioBruto,
+        totalDescontos: Number(totalDescontos.toFixed(2)),
         totalFinal
       }
     }
@@ -117,6 +124,20 @@ class ScheduleServices {
       // Buscar todos os usuários e suas comissões em uma única query otimizada
       const summaryData = await this.scheduleRepo.getAllUsersSummaryOptimized()
       
+      // Adicionar descontos para cada usuário
+      const { DiscountRepo } = await import('../repositories/DiscountRepo.js')
+      const discountRepo = new DiscountRepo()
+      
+      const hoje = new Date()
+      const ano = hoje.getFullYear()
+      const mes = hoje.getMonth() + 1
+      
+      for (const userData of summaryData) {
+        const totalDescontos = await discountRepo.getTotalByUser(userData.id, ano, mes)
+        userData.totalDescontos = Number(totalDescontos.toFixed(2))
+        userData.totalFinal = Number((userData.salarioBruto + userData.totalComissoes - userData.totalDescontos).toFixed(2))
+      }
+      
       return summaryData
     } catch (error) {
       // Fallback para método anterior se a query otimizada falhar
@@ -124,8 +145,10 @@ class ScheduleServices {
       // Buscar todos os usuários
       const users = await this.scheduleRepo.getAllUsers()
       
-      // Para cada usuário, calcular suas comissões
+      // Para cada usuário, calcular suas comissões e descontos
       const summaryData = []
+      const { DiscountRepo } = await import('../repositories/DiscountRepo.js')
+      const discountRepo = new DiscountRepo()
       
       for (const user of users) {
         // Buscar comissões do usuário no mês atual
@@ -145,7 +168,8 @@ class ScheduleServices {
         
         const totalComissoesRounded = Number(totalComissoes.toFixed(2))
         const salarioBruto = Number(user.salarioBruto || 0)
-        const totalFinal = Number((salarioBruto + totalComissoesRounded).toFixed(2))
+        const totalDescontos = await discountRepo.getTotalByUser(user.id, ano, mes)
+        const totalFinal = Number((salarioBruto + totalComissoesRounded - totalDescontos).toFixed(2))
         
         summaryData.push({
           id: user.id,
@@ -154,6 +178,7 @@ class ScheduleServices {
           role: user.role,
           salarioBruto,
           totalComissoes: totalComissoesRounded,
+          totalDescontos: Number(totalDescontos.toFixed(2)),
           totalFinal
         })
       }
