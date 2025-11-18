@@ -9,11 +9,12 @@ const knexConfig = {
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    timezone: '-03:00'
+    timezone: 'Z'
   },
   pool: {
     afterCreate: function (conn, done) {
-      conn.query("SET time_zone='-03:00';", function (err) {
+      // Configurar timezone e modo SQL para compatibilidade
+      conn.query("SET time_zone='+00:00'; SET sql_mode='';", function (err) {
         done(err, conn);
       });
     }

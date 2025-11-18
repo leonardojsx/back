@@ -76,19 +76,31 @@ class TrainingServices {
     const rows = await this.trainingRepo.findAll(filterOptions);
 
     const items = rows.map(r => {
-      // Garantir que as datas sejam retornadas no formato correto
+      // Garantir que as datas sejam retornadas no formato correto para o Brasil
       const formatDateTime = (dateTime) => {
         if (!dateTime) return null;
-        if (typeof dateTime === 'string') return dateTime;
+        if (typeof dateTime === 'string' && dateTime.includes('T') && !dateTime.includes('Z')) {
+          return dateTime;
+        }
         
-        // Se for um objeto Date, formatar para ISO string local (sem Z)
-        const date = new Date(dateTime);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
+        let date;
+        if (typeof dateTime === 'string') {
+          date = new Date(dateTime);
+        } else {
+          date = dateTime;
+        }
+        
+        // Ajustar para timezone do Brasil (UTC-3)
+        const brazilOffset = -3 * 60; // -3 horas em minutos
+        const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+        const brazilTime = new Date(utc + (brazilOffset * 60000));
+        
+        const year = brazilTime.getFullYear();
+        const month = String(brazilTime.getMonth() + 1).padStart(2, '0');
+        const day = String(brazilTime.getDate()).padStart(2, '0');
+        const hours = String(brazilTime.getHours()).padStart(2, '0');
+        const minutes = String(brazilTime.getMinutes()).padStart(2, '0');
+        const seconds = String(brazilTime.getSeconds()).padStart(2, '0');
         
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
       };
@@ -112,19 +124,31 @@ class TrainingServices {
     const row = await this.trainingRepo.findById(id)
     if (!row) return null
     
-    // Garantir que as datas sejam retornadas no formato correto
+    // Garantir que as datas sejam retornadas no formato correto para o Brasil
     const formatDateTime = (dateTime) => {
       if (!dateTime) return null;
-      if (typeof dateTime === 'string') return dateTime;
+      if (typeof dateTime === 'string' && dateTime.includes('T') && !dateTime.includes('Z')) {
+        return dateTime;
+      }
       
-      // Se for um objeto Date, formatar para ISO string local (sem Z)
-      const date = new Date(dateTime);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
+      let date;
+      if (typeof dateTime === 'string') {
+        date = new Date(dateTime);
+      } else {
+        date = dateTime;
+      }
+      
+      // Ajustar para timezone do Brasil (UTC-3)
+      const brazilOffset = -3 * 60; // -3 horas em minutos
+      const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+      const brazilTime = new Date(utc + (brazilOffset * 60000));
+      
+      const year = brazilTime.getFullYear();
+      const month = String(brazilTime.getMonth() + 1).padStart(2, '0');
+      const day = String(brazilTime.getDate()).padStart(2, '0');
+      const hours = String(brazilTime.getHours()).padStart(2, '0');
+      const minutes = String(brazilTime.getMinutes()).padStart(2, '0');
+      const seconds = String(brazilTime.getSeconds()).padStart(2, '0');
       
       return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     };
