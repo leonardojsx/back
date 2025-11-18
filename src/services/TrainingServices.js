@@ -75,16 +75,35 @@ class TrainingServices {
 
     const rows = await this.trainingRepo.findAll(filterOptions);
 
-    const items = rows.map(r => ({
-      id: r.id,
-      titulo: r.titulo,
-      usuario_id: r.usuario_id,
-      usuario: r.usuario || null,
-      cnpj: r.cnpj,
-      data_inicio: r.data_inicio,
-      data_fim: r.data_fim,
-      status: r.status
-    }))
+    const items = rows.map(r => {
+      // Garantir que as datas sejam retornadas no formato correto
+      const formatDateTime = (dateTime) => {
+        if (!dateTime) return null;
+        if (typeof dateTime === 'string') return dateTime;
+        
+        // Se for um objeto Date, formatar para ISO string local (sem Z)
+        const date = new Date(dateTime);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+      };
+
+      return {
+        id: r.id,
+        titulo: r.titulo,
+        usuario_id: r.usuario_id,
+        usuario: r.usuario || null,
+        cnpj: r.cnpj,
+        data_inicio: formatDateTime(r.data_inicio),
+        data_fim: formatDateTime(r.data_fim),
+        status: r.status
+      };
+    })
 
     return items
   }
@@ -93,14 +112,31 @@ class TrainingServices {
     const row = await this.trainingRepo.findById(id)
     if (!row) return null
     
+    // Garantir que as datas sejam retornadas no formato correto
+    const formatDateTime = (dateTime) => {
+      if (!dateTime) return null;
+      if (typeof dateTime === 'string') return dateTime;
+      
+      // Se for um objeto Date, formatar para ISO string local (sem Z)
+      const date = new Date(dateTime);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     return {
       id: row.id,
       titulo: row.titulo,
       usuario_id: row.usuario_id,
       usuario: row.usuario || null,
       cnpj: row.cnpj,
-      data_inicio: row.data_inicio,
-      data_fim: row.data_fim,
+      data_inicio: formatDateTime(row.data_inicio),
+      data_fim: formatDateTime(row.data_fim),
       status: row.status
     }
   }
@@ -120,10 +156,8 @@ class TrainingServices {
     }
 
     if (training.data_inicio && training.data_fim) {
-      const dataInicio = new Date(training.data_inicio)
-      const dataFim = new Date(training.data_fim)
-
-      if (dataInicio >= dataFim) {
+      // Comparar strings diretamente para evitar problemas de timezone
+      if (training.data_inicio >= training.data_fim) {
         const err = new Error('Data de início deve ser anterior à data de fim')
         err.status = 400
         throw err
