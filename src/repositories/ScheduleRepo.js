@@ -126,7 +126,7 @@ class ScheduleRepo {
   async getAllUsers() {
     try {
       const users = await knex('usuarios')
-        .select('id', 'nome', 'email', 'role', 'salarioBruto')
+        .select('id', 'nome', 'email', 'role', 'salarioBruto', 'nivel', 'porcentagem_aumento')
       
       return users
     } catch (error) {
@@ -149,6 +149,8 @@ class ScheduleRepo {
           'usuarios.email', 
           'usuarios.role',
           'usuarios.salarioBruto',
+          'usuarios.nivel',
+          'usuarios.porcentagem_aumento',
           knex.raw('COALESCE(SUM(agenda.valorPorcentagem), 0) as totalComissoes')
         )
         .leftJoin('agenda', function() {
@@ -156,7 +158,7 @@ class ScheduleRepo {
             .andOn(knex.raw('YEAR(agenda.data) = ?', [ano]))
             .andOn(knex.raw('MONTH(agenda.data) = ?', [mes]))
         })
-        .groupBy('usuarios.id', 'usuarios.nome', 'usuarios.email', 'usuarios.role', 'usuarios.salarioBruto')
+        .groupBy('usuarios.id', 'usuarios.nome', 'usuarios.email', 'usuarios.role', 'usuarios.salarioBruto', 'usuarios.nivel', 'usuarios.porcentagem_aumento')
         .orderBy('usuarios.nome')
 
       // Processar os resultados
@@ -171,6 +173,8 @@ class ScheduleRepo {
           email: row.email,
           role: row.role,
           salarioBruto,
+          nivel: row.nivel,
+          porcentagem_aumento: row.porcentagem_aumento ? Number(row.porcentagem_aumento) : 0,
           totalComissoes: Number(totalComissoes.toFixed(2)),
           totalFinal
         }

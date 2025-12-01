@@ -14,7 +14,8 @@ class UsersRepo {
 
   async update(userData, id) {
     try {
-      return await knex('usuarios').where('id', id).update(userData);
+      const result = await knex('usuarios').where('id', id).update(userData);
+      return result;
     } catch (error) {
       throw error;
     }

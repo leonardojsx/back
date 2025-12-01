@@ -177,6 +177,8 @@ class ScheduleServices {
           email: user.email,
           role: user.role,
           salarioBruto,
+          nivel: user.nivel,
+          porcentagem_aumento: user.porcentagem_aumento ? Number(user.porcentagem_aumento) : 0,
           totalComissoes: totalComissoesRounded,
           totalDescontos: Number(totalDescontos.toFixed(2)),
           totalFinal

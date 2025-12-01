@@ -36,7 +36,9 @@ class UsersServices {
       nome: existUser.nome,
       email: existUser.email,
       role: existUser.role,
-      salarioBruto: existUser.salarioBruto ? Number(existUser.salarioBruto) : 0
+      salarioBruto: existUser.salarioBruto ? Number(existUser.salarioBruto) : 0,
+      nivel: existUser.nivel,
+      porcentagem_aumento: existUser.porcentagem_aumento ? Number(existUser.porcentagem_aumento) : 0
     };
 
     return { token, user: userResponse };
@@ -67,6 +69,8 @@ class UsersServices {
     if (userData.email !== undefined) updateData.email = userData.email;
     if (userData.role !== undefined) updateData.role = userData.role;
     if (userData.salarioBruto !== undefined) updateData.salarioBruto = Number(userData.salarioBruto);
+    if (userData.nivel !== undefined) updateData.nivel = userData.nivel;
+    if (userData.porcentagem_aumento !== undefined) updateData.porcentagem_aumento = Number(userData.porcentagem_aumento);
     
     // Se senha foi fornecida, criptografar
     if (userData.senha) {
@@ -86,7 +90,9 @@ class UsersServices {
       nome: user.nome,
       email: user.email,
       role: user.role,
-      salarioBruto: user.salarioBruto ? Number(user.salarioBruto) : 0
+      salarioBruto: user.salarioBruto ? Number(user.salarioBruto) : 0,
+      nivel: user.nivel,
+      porcentagem_aumento: user.porcentagem_aumento ? Number(user.porcentagem_aumento) : 0
     };
   }
 
@@ -98,7 +104,9 @@ class UsersServices {
       nome: user.nome,
       email: user.email,
       role: user.role,
-      salarioBruto: user.salarioBruto ? Number(user.salarioBruto) : 0
+      salarioBruto: user.salarioBruto ? Number(user.salarioBruto) : 0,
+      nivel: user.nivel,
+      porcentagem_aumento: user.porcentagem_aumento ? Number(user.porcentagem_aumento) : 0
     }));
   }
   
