@@ -89,17 +89,11 @@ class DiscountController {
       const { userId } = req.params;
       const { ano, mes } = req.query;
       
-      console.log('🔍 [DiscountController] Buscando descontos para usuário:', userId);
-      console.log('📅 [DiscountController] Filtros - Ano:', ano, 'Mês:', mes);
-      
       const discounts = await this.discountServices.findByUser(
         userId, 
         ano ? parseInt(ano) : null, 
         mes ? parseInt(mes) : null
       );
-      
-      console.log('📋 [DiscountController] Descontos encontrados:', discounts.length);
-      console.log('📋 [DiscountController] Dados:', discounts);
       
       return res.status(200).json(discounts);
     } catch (error) {
