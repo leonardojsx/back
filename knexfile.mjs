@@ -12,4 +12,7 @@ const knexConfig = {
   }
 }
 
-export default knexConfig
+const knex = Knex(knexConfig);
+
+export default knex;
+export { knexConfig };

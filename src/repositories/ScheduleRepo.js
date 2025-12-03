@@ -1,7 +1,4 @@
-import Knex from "knex";
-import knexConfig from "../../knexfile.mjs";
-
-const knex = Knex(knexConfig);
+import knex from "../../knexfile.mjs";
 
 class ScheduleRepo {
   async save(scheduleEntity) {

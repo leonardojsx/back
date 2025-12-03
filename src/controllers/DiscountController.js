@@ -97,7 +97,6 @@ class DiscountController {
       
       return res.status(200).json(discounts);
     } catch (error) {
-      console.error('❌ [DiscountController] Erro:', error);
       return res.status(400).json({ message: error.message });
     }
   }
