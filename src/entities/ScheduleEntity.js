@@ -4,6 +4,7 @@ class ScheduleEntity {
   constructor(body, id) {
     this.id = id ? id : randomUUID()
     this.cnpj = body.cnpj
+    this.tipoDocumento = body.tipoDocumento || 'cnpj' // 'cpf' ou 'cnpj'
     // Converter a data para o formato aceito pelo MySQL
     this.data = this.formatDateForMySQL(body.data)
     this.idUsuario = body.idUsuario

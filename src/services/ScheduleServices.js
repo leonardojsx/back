@@ -14,6 +14,25 @@ class ScheduleServices {
     schedule.valor = valor
     schedule.titulo = schedule.titulo ?? null
     
+    // Validar documento (CPF ou CNPJ)
+    const tipoDocumento = schedule.tipoDocumento || 'cnpj'
+    if (!schedule.cnpj) {
+      const err = new Error(`${tipoDocumento.toUpperCase()} é obrigatório`)
+      err.status = 400
+      throw err
+    }
+    
+    const documentoLimpo = schedule.cnpj.replace(/\D/g, '')
+    if (tipoDocumento === 'cnpj' && documentoLimpo.length !== 14) {
+      const err = new Error('CNPJ deve ter 14 dígitos')
+      err.status = 400
+      throw err
+    } else if (tipoDocumento === 'cpf' && documentoLimpo.length !== 11) {
+      const err = new Error('CPF deve ter 11 dígitos')
+      err.status = 400
+      throw err
+    }
+    
     // Validar se a data foi fornecida
     if (!schedule.data) {
       const err = new Error('Data é obrigatória')
@@ -45,6 +64,7 @@ class ScheduleServices {
     const items = rows.map(r => ({
       id: r.id,
       cnpj: r.cnpj,
+      tipoDocumento: r.tipoDocumento || 'cnpj',
       data: r.data,
       idUsuario: r.idUsuario,
       usuario: r.usuario || null,
@@ -91,6 +111,7 @@ class ScheduleServices {
     return {
       id: row.id,
       cnpj: row.cnpj,
+      tipoDocumento: row.tipoDocumento || 'cnpj',
       data: row.data,
       idUsuario: row.idUsuario,
       usuario: row.usuario || null,

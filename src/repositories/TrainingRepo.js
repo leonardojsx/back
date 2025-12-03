@@ -8,6 +8,7 @@ class TrainingRepo {
         titulo: trainingEntity.titulo,
         usuario_id: trainingEntity.usuario_id,
         cnpj: trainingEntity.cnpj,
+        tipoDocumento: trainingEntity.tipoDocumento,
         data_inicio: trainingEntity.data_inicio,
         data_fim: trainingEntity.data_fim,
         status: trainingEntity.status

@@ -13,8 +13,15 @@ class TrainingServices {
       throw err
     }
 
-    if (!training.cnpj || training.cnpj.replace(/\D/g, '').length !== 14) {
-      const err = new Error('CNPJ é obrigatório e deve ter 14 dígitos')
+    if (!training.cnpj) {
+      const err = new Error('CPF/CNPJ é obrigatório')
+      err.status = 400
+      throw err
+    }
+    
+    const documentoLimpo = training.cnpj.replace(/\D/g, '');
+    if (documentoLimpo.length !== 11 && documentoLimpo.length !== 14) {
+      const err = new Error('CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos')
       err.status = 400
       throw err
     }
@@ -99,6 +106,7 @@ class TrainingServices {
         usuario_id: r.usuario_id,
         usuario: r.usuario || null,
         cnpj: r.cnpj,
+        tipoDocumento: r.tipoDocumento,
         data_inicio: formatDateTime(r.data_inicio),
         data_fim: formatDateTime(r.data_fim),
         status: r.status
@@ -135,6 +143,7 @@ class TrainingServices {
       usuario_id: row.usuario_id,
       usuario: row.usuario || null,
       cnpj: row.cnpj,
+      tipoDocumento: row.tipoDocumento,
       data_inicio: formatDateTime(row.data_inicio),
       data_fim: formatDateTime(row.data_fim),
       status: row.status
@@ -149,10 +158,13 @@ class TrainingServices {
       throw err
     }
 
-    if (training.cnpj && training.cnpj.replace(/\D/g, '').length !== 14) {
-      const err = new Error('CNPJ deve ter 14 dígitos')
-      err.status = 400
-      throw err
+    if (training.cnpj) {
+      const documentoLimpo = training.cnpj.replace(/\D/g, '');
+      if (documentoLimpo.length !== 11 && documentoLimpo.length !== 14) {
+        const err = new Error('CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos')
+        err.status = 400
+        throw err
+      }
     }
 
     if (training.data_inicio && training.data_fim) {
