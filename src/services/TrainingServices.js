@@ -109,7 +109,8 @@ class TrainingServices {
         tipoDocumento: r.tipoDocumento,
         data_inicio: formatDateTime(r.data_inicio),
         data_fim: formatDateTime(r.data_fim),
-        status: r.status
+        status: r.status,
+        observacao: r.observacao
       };
     })
 
@@ -146,7 +147,8 @@ class TrainingServices {
       tipoDocumento: row.tipoDocumento,
       data_inicio: formatDateTime(row.data_inicio),
       data_fim: formatDateTime(row.data_fim),
-      status: row.status
+      status: row.status,
+      observacao: row.observacao
     }
   }
 

@@ -11,7 +11,8 @@ class TrainingRepo {
         tipoDocumento: trainingEntity.tipoDocumento,
         data_inicio: trainingEntity.data_inicio,
         data_fim: trainingEntity.data_fim,
-        status: trainingEntity.status
+        status: trainingEntity.status,
+        observacao: trainingEntity.observacao
       };
       await knex('treinamentos').insert(toInsert);
       return trainingEntity.id;

@@ -10,6 +10,7 @@ class TrainingEntity {
     this.data_inicio = body.data_inicio
     this.data_fim = body.data_fim
     this.status = body.status || 'planejado'
+    this.observacao = body.observacao || null
   }
 }
 
