@@ -1,14 +1,8 @@
 import { Router } from "express";
-import { DiscountRepo } from "../repositories/DiscountRepo.js";
-import { DiscountServices } from "../services/DiscountServices.js";
-import { DiscountController } from "../controllers/DiscountController.js";
+import { discountController } from "../controllers/index.js";
 import { authMiddleware } from "../utils/middleware/authMiddleware.js";
 
 const router = Router();
-
-const discountRepo = new DiscountRepo();
-const discountServices = new DiscountServices(discountRepo);
-const discountController = new DiscountController(discountServices);
 
 // Todas as rotas precisam de autenticação
 router.use(authMiddleware);

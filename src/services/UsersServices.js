@@ -2,10 +2,21 @@ import { UsersEntity } from "../entities/UsersEntity.js";
 // ✅ CORRETO: Importando o gerador de token do seu arquivo index.js
 import Authentication from '../utils/middleware/index.js';
 import { createHash } from 'crypto';
+import { SalarioCalculatorService } from './SalarioCalculatorService.js';
 
 class UsersServices {
-  constructor(usersRepo) {
+  constructor(usersRepo, discountRepo = null, scheduleRepo = null) {
     this.usersRepo = usersRepo;
+    
+    console.log(`🔧 UsersServices inicializado: discountRepo=${!!discountRepo}, scheduleRepo=${!!scheduleRepo}`);
+    
+    // Inicializar calculator service se os repositórios estiverem disponíveis
+    if (discountRepo && scheduleRepo) {
+      this.salarioCalculator = new SalarioCalculatorService(discountRepo, scheduleRepo, usersRepo);
+      console.log(`✅ SalarioCalculatorService inicializado com sucesso`);
+    } else {
+      console.log(`⚠️  SalarioCalculatorService NÃO inicializado - dependências faltando`);
+    }
   }
 
   async login(payload) {
@@ -64,20 +75,54 @@ class UsersServices {
     // Criar objeto apenas com os campos que podem ser atualizados
     const updateData = {};
     
+    // Flags para detectar mudanças que afetam o salário
+    let salarioMudou = false;
+    let nivelMudou = false;
+    
     // Mapear apenas os campos permitidos para atualização
     if (userData.nome !== undefined) updateData.nome = userData.nome;
     if (userData.email !== undefined) updateData.email = userData.email;
     if (userData.role !== undefined) updateData.role = userData.role;
-    if (userData.salarioBruto !== undefined) updateData.salarioBruto = Number(userData.salarioBruto);
-    if (userData.nivel !== undefined) updateData.nivel = userData.nivel;
-    if (userData.porcentagem_aumento !== undefined) updateData.porcentagem_aumento = Number(userData.porcentagem_aumento);
+    if (userData.salarioBruto !== undefined) {
+      updateData.salarioBruto = Number(userData.salarioBruto);
+      salarioMudou = true;
+    }
+    if (userData.nivel !== undefined) {
+      updateData.nivel = userData.nivel;
+      nivelMudou = true;
+    }
+    if (userData.porcentagem_aumento !== undefined) {
+      updateData.porcentagem_aumento = Number(userData.porcentagem_aumento);
+      nivelMudou = true;
+    }
     
     // Se senha foi fornecida, criptografar
     if (userData.senha) {
       updateData.senha = this.generatePasswordHash(userData.senha);
     }
     
-    return await this.usersRepo.update(updateData, id);
+    const result = await this.usersRepo.update(updateData, id);
+    
+    // 🔥 RECÁLCULO AUTOMÁTICO - Quando salário ou nível mudarem
+    console.log(`🐛 DEBUG: salarioMudou=${salarioMudou}, nivelMudou=${nivelMudou}, salarioCalculator=${!!this.salarioCalculator}`);
+    if ((salarioMudou || nivelMudou) && this.salarioCalculator) {
+      try {
+        console.log(`🔄 Recalculando salário automaticamente para usuário ${id}`);
+        if (salarioMudou) {
+          await this.salarioCalculator.recalcularAposAlteracaoSalario(id);
+        } else if (nivelMudou) {
+          await this.salarioCalculator.recalcularAposAlteracaoNivel(id);
+        }
+        console.log(`✅ Salário recalculado com sucesso para usuário ${id}`);
+      } catch (error) {
+        console.error(`❌ Erro ao recalcular salário para usuário ${id}:`, error.message);
+        // Não falhar a operação principal por erro no cálculo
+      }
+    } else if (salarioMudou || nivelMudou) {
+      console.log(`⚠️  AVISO: Mudança detectada mas salarioCalculator não disponível`);
+    }
+    
+    return result;
   }
 
   async findById(id) {

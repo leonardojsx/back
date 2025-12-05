@@ -1,8 +1,14 @@
 import { ScheduleEntity } from "../entities/ScheduleEntity.js";
+import { SalarioCalculatorService } from './SalarioCalculatorService.js';
 
 class ScheduleServices {
-  constructor(scheduleRepo) {
-    this.scheduleRepo = scheduleRepo
+  constructor(scheduleRepo, discountRepo = null, usersRepo = null) {
+    this.scheduleRepo = scheduleRepo;
+    
+    // Inicializar calculator service se os repositórios estiverem disponíveis
+    if (discountRepo && usersRepo) {
+      this.salarioCalculator = new SalarioCalculatorService(discountRepo, scheduleRepo, usersRepo);
+    }
   }
 
   async save(schedule) {
@@ -48,6 +54,19 @@ class ScheduleServices {
     }
     const scheduleEntity = new ScheduleEntity(schedule)
     const id = await this.scheduleRepo.save(scheduleEntity)
+    
+    // 🔥 RECÁLCULO AUTOMÁTICO - Após cadastrar comissão
+    if (this.salarioCalculator && schedule.idUsuario) {
+      try {
+        console.log(`🔄 Recalculando salário após nova comissão para usuário ${schedule.idUsuario}`);
+        await this.salarioCalculator.recalcularAposAlteracaoComissao(schedule.idUsuario, schedule.data);
+        console.log(`✅ Salário recalculado com sucesso para usuário ${schedule.idUsuario}`);
+      } catch (error) {
+        console.error(`❌ Erro ao recalcular salário para usuário ${schedule.idUsuario}:`, error.message);
+        // Não falhar a operação principal por erro no cálculo
+      }
+    }
+    
     return id
   }
 
@@ -124,19 +143,53 @@ class ScheduleServices {
   }
 
   async update(schedule, id) {
+    // Buscar dados originais para comparar mudanças
+    const original = await this.scheduleRepo.findById(id);
+    
     // Se a data estiver sendo atualizada, formatar corretamente
     if (schedule.data) {
       const scheduleEntity = new ScheduleEntity(schedule)
       schedule.data = scheduleEntity.data
     }
     
-    await this.scheduleRepo.update(schedule, id)
-    return true
+    await this.scheduleRepo.update(schedule, id);
+    
+    // 🔥 RECÁLCULO AUTOMÁTICO - Após atualizar comissão
+    if (this.salarioCalculator && original) {
+      try {
+        console.log(`🔄 Recalculando salário após atualizar comissão ${id}`);
+        // Usar a data original ou nova data para determinar o mês de referência
+        const dataReferencia = schedule.data || original.data;
+        await this.salarioCalculator.recalcularAposAlteracaoComissao(original.idUsuario, dataReferencia);
+        console.log(`✅ Salário recalculado com sucesso para usuário ${original.idUsuario}`);
+      } catch (error) {
+        console.error(`❌ Erro ao recalcular salário para usuário ${original.idUsuario}:`, error.message);
+        // Não falhar a operação principal por erro no cálculo
+      }
+    }
+    
+    return true;
   }
 
   async delete(id) {
-    await this.scheduleRepo.delete(id)
-    return true
+    // Buscar dados antes de deletar para recálculo
+    const original = await this.scheduleRepo.findById(id);
+    
+    await this.scheduleRepo.delete(id);
+    
+    // 🔥 RECÁLCULO AUTOMÁTICO - Após deletar comissão
+    if (this.salarioCalculator && original) {
+      try {
+        console.log(`🔄 Recalculando salário após deletar comissão ${id}`);
+        await this.salarioCalculator.recalcularAposAlteracaoComissao(original.idUsuario, original.data);
+        console.log(`✅ Salário recalculado com sucesso para usuário ${original.idUsuario}`);
+      } catch (error) {
+        console.error(`❌ Erro ao recalcular salário para usuário ${original.idUsuario}:`, error.message);
+        // Não falhar a operação principal por erro no cálculo
+      }
+    }
+    
+    return true;
   }
 
   // Método para buscar resumo de todos os usuários (admin only) - OTIMIZADO

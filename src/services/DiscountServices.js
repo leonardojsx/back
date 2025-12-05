@@ -1,8 +1,14 @@
 import { DiscountEntity } from "../entities/DiscountEntity.js";
+import { SalarioCalculatorService } from './SalarioCalculatorService.js';
 
 class DiscountServices {
-  constructor(discountRepo) {
+  constructor(discountRepo, scheduleRepo = null, usersRepo = null) {
     this.discountRepo = discountRepo;
+    
+    // Inicializar calculator service se os repositórios estiverem disponíveis
+    if (scheduleRepo && usersRepo) {
+      this.salarioCalculator = new SalarioCalculatorService(discountRepo, scheduleRepo, usersRepo);
+    }
   }
 
   async save(discount) {
@@ -29,6 +35,19 @@ class DiscountServices {
 
     const discountEntity = new DiscountEntity(discount);
     const id = await this.discountRepo.save(discountEntity);
+    
+    // 🔥 RECÁLCULO AUTOMÁTICO - Após cadastrar desconto (exceto INSS e IRPF que são automáticos)
+    if (this.salarioCalculator && !['INSS', 'IRPF'].includes(discount.descricao)) {
+      try {
+        console.log(`🔄 Recalculando salário após novo desconto para usuário ${discount.idUsuario}`);
+        await this.salarioCalculator.recalcularAposAlteracaoComissao(discount.idUsuario, discount.data);
+        console.log(`✅ Salário recalculado com sucesso para usuário ${discount.idUsuario}`);
+      } catch (error) {
+        console.error(`❌ Erro ao recalcular salário para usuário ${discount.idUsuario}:`, error.message);
+        // Não falhar a operação principal por erro no cálculo
+      }
+    }
+    
     return id;
   }
 
@@ -98,6 +117,20 @@ class DiscountServices {
     }
 
     await this.discountRepo.update(updateData, id);
+    
+    // 🔥 RECÁLCULO AUTOMÁTICO - Após atualizar desconto (exceto INSS que é automático)
+    if (this.salarioCalculator && existing.descricao !== 'INSS') {
+      try {
+        console.log(`🔄 Recalculando salário após atualizar desconto ${id}`);
+        const dataReferencia = updateData.data || existing.data;
+        await this.salarioCalculator.recalcularAposAlteracaoComissao(existing.idUsuario, dataReferencia);
+        console.log(`✅ Salário recalculado com sucesso para usuário ${existing.idUsuario}`);
+      } catch (error) {
+        console.error(`❌ Erro ao recalcular salário para usuário ${existing.idUsuario}:`, error.message);
+        // Não falhar a operação principal por erro no cálculo
+      }
+    }
+    
     return true;
   }
 
@@ -111,6 +144,19 @@ class DiscountServices {
     }
 
     await this.discountRepo.delete(id);
+    
+    // 🔥 RECÁLCULO AUTOMÁTICO - Após deletar desconto (exceto INSS e IRPF que são automáticos)
+    if (this.salarioCalculator && !['INSS', 'IRPF'].includes(existing.descricao)) {
+      try {
+        console.log(`🔄 Recalculando salário após deletar desconto ${id}`);
+        await this.salarioCalculator.recalcularAposAlteracaoComissao(existing.idUsuario, existing.data);
+        console.log(`✅ Salário recalculado com sucesso para usuário ${existing.idUsuario}`);
+      } catch (error) {
+        console.error(`❌ Erro ao recalcular salário para usuário ${existing.idUsuario}:`, error.message);
+        // Não falhar a operação principal por erro no cálculo
+      }
+    }
+    
     return true;
   }
 
